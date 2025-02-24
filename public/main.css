@@ -1,0 +1,124 @@
+.group-container {
+  display: grid;
+  grid-template-rows: 5% 88% 6%;
+  width: 95vw;
+  height: 95vh;
+  background: white;
+  border-radius: 25px;
+  overflow: hidden;
+}
+
+.container-title {
+  background: dimgrey;
+  border-radius: 25px 25px 0 0;
+}
+
+#btnGoHome {
+  border-radius: 50%; /* 圓角 100% 形成圓形 */
+  width: 20px;
+  height: 20px;
+  border: 1px solid red;
+  padding: 0; /* 移除額外的內間距 */
+  margin-left: 15px;
+  position: absolute;
+  left: 0;
+}
+
+.title-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 100%;
+}
+
+.title-container > div > span {
+  color: white;
+}
+
+.title-container > div > i {
+  color: white;
+  padding: 5px;
+}
+
+.container-body {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.card {
+  margin: 5px;
+  border-radius: 5px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.card-container {
+  padding: 5px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 90%;
+  scrollbar-gutter: stable;
+}
+
+.hidden {
+  opacity: 0;
+}
+
+.btnArea {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.btnArea > * {
+  margin: 5px;
+}
+/* 通用的滾動條樣式 */
+::-webkit-scrollbar {
+  width: 8px; /* 滾動條寬度 */
+  height: 8px; /* 滾動條高度（橫向） */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #888; /* 滾動條滑塊的顏色 */
+  border-radius: 10px; /* 圓角 */
+  border: 2px solid transparent; /* 內邊距 */
+  background-clip: padding-box; /* 防止邊界擠壓 */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* 滑鼠懸停時的顏色 */
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0; /* 滾動條軌道背景色 */
+  border-radius: 10px; /* 軌道的圓角 */
+}
+
+::-webkit-scrollbar-track:hover {
+  background: #e0e0e0; /* 滑鼠懸停軌道的背景色 */
+}
+
+@keyframes showCard {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes sliceCard {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(var(--translateY, -100%));
+  }
+}
+
