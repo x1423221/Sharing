@@ -21,7 +21,7 @@
                 :disabled="profile.userId !== Transaction.userId" />
             </div>
           </div>
-          <h3>分攤明細</h3>
+          <h5>分攤明細</h5>
           <div class="ShareArea" ref="ShareArea">
             <div v-for="(l, index) in Transaction.split" :key="index" class="row">
               <div class="col-md-4">
@@ -157,6 +157,7 @@ input {
 .col-md-4 {
   text-align: right;
   letter-spacing: 10px;
+  align-content: center;
 }
 
 .select {
