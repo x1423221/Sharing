@@ -377,18 +377,17 @@ const fetchTransactions = async (DocId) => {
         id: key,
         ...value,
       }));
+
       TransactionList.value = tmpdata;
-
       TransactionList.value.forEach((value) => {
-
         let myselfAmount = 0;
         value.split.forEach((split) => {
           const userId = split.userId;
           const userName = split.userName;
           const share = parseFloat(split.share) * -1; // 轉換成負值
-
           if (userId != value.userId) {
             myselfAmount += share;
+
             let issplitExsist = TransactionColData.value.find((record) => {
               return record.userId === userId;
             });
@@ -397,8 +396,7 @@ const fetchTransactions = async (DocId) => {
               issplitExsist.splitAmount += share;
             } else {
               TransactionColData.value.push(
-                new TransactionDetail(userId, userName, share)
-              );
+                new TransactionDetail(userId, userName, share));
             }
           }
         });
@@ -411,8 +409,7 @@ const fetchTransactions = async (DocId) => {
           isExsist.splitAmount += myselfAmount * -1;
         } else {
           TransactionColData.value.push(
-            new TransactionDetail(value.userId, value.payer, myselfAmount * -1)
-          );
+            new TransactionDetail(value.userId, value.payer, myselfAmount * -1));
         }
       });
 
