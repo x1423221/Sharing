@@ -9,28 +9,30 @@
         </div>
         <div class="modal-body" v-if="Transaction && MemberList">
           <div class="row">
-            <div class="col-md-4">帳目名稱:</div>
+            <div class="col-md-4">帳目名稱</div>
             <div class="col-md">
-              <input v-model="Transaction.description" :disabled=" profile.userId !== Transaction.userId"/>
+              <input v-model="Transaction.description" :disabled="profile.userId !== Transaction.userId" />
             </div>
           </div>
           <div class="row">
-            <div class="col-md-4">總金額:</div>
+            <div class="col-md-4">總金額</div>
             <div class="col-md">
               <input inputmode="decimal" v-model="Transaction.amount"
-                :disabled=" profile.userId !== Transaction.userId" />
+                :disabled="profile.userId !== Transaction.userId" />
             </div>
           </div>
           <h3>分攤明細</h3>
-          <div v-for="(l, index) in Transaction.split" :key="index" class="row">
-            <div class="col-md-4">
-              <select v-model="l.userId" @change="MemberChange(index)">
-                <option v-for="(m, index) in MemberList.value" :key="index" :value="m.userId">
-                  {{ m.name }}
-                </option>
-              </select>:
+          <div class="ShareArea" ref="ShareArea">
+            <div v-for="(l, index) in Transaction.split" :key="index" class="row">
+              <div class="col-md-4">
+                <select class="form-select" v-model="l.userId" @change="MemberChange(index)">
+                  <option v-for="(m, index) in MemberList.value" :key="index" :value="m.userId">
+                    {{ m.name }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-md"><input inputmode="decimal" v-model="l.share" /></div>
             </div>
-            <div class="col-md"><input inputmode="decimal" v-model="l.share" /></div>
           </div>
           <button class="btn btn-success" @click="newShare">新增分攤明細</button>
         </div>
@@ -52,7 +54,7 @@ import Modal from "bootstrap/js/dist/modal";
 import db from "../firebase/config";
 import { doc, updateDoc } from "firebase/firestore";
 
-import { onMounted, ref, defineExpose, inject } from "vue";
+import { onMounted, ref, defineExpose, inject, nextTick } from "vue";
 
 const modal = ref(null);
 const myModal = ref(null);
@@ -63,6 +65,8 @@ const profile = inject("profile");
 
 const Transaction = ref([]);
 const MemberList = inject("MemberList");
+
+const ShareArea = ref(null);
 
 onMounted(() => {
   myModal.value = new Modal(modal.value);
@@ -119,6 +123,11 @@ const newShare = () => {
     userId: profile.value.userId,
     userName: profile.value.displayName,
   });
+
+  nextTick(() => {
+    if (ShareArea.value)
+      ShareArea.value.scrollTop = ShareArea.value.scrollHeight
+  })
 };
 
 const MemberChange = (index) => {
@@ -138,10 +147,11 @@ defineExpose({
 <style scoped>
 input {
   width: 100%;
+  margin: 5px 0 5px 0;
 }
 
-.row>* {
-  width: 50% !important;
+.row {
+  margin: 10px;
 }
 
 .col-md-4 {
@@ -151,5 +161,18 @@ input {
 
 .select {
   height: 100%;
+}
+
+.ShareArea {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 30vh;
+  scrollbar-gutter: stable;
+}
+
+@media screen and (max-width : 600px) {
+  .col-md-4 {
+    text-align: left;
+  }
 }
 </style>

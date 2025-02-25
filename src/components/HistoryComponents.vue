@@ -83,7 +83,7 @@ onMounted(async () => {
       }));
 
       historyDocs.value = [...historyDocs.value, ...filteredGroups];
-      historyDocs.value.sort((a, b) => a.date > b.date)
+      historyDocs.value.sort((a, b) =>   new Date(a.date) > new Date(b.date))
     });
 
     setCardStyle(historyDocs.value, cardStyle, cardisNew);
