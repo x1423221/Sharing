@@ -22,7 +22,7 @@
       <el-divider content-position="left">
         建議付款方案
       </el-divider>
-      <el-table :data="PaymentsList" height="300px">
+      <el-table :data="PaymentsList" height="300">
         <el-table-column prop="from" label="付款人" />
         <el-table-column prop="to" label="收款人" />
         <el-table-column prop="amount" label="應付金額" />
