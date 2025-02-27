@@ -21,18 +21,15 @@
       <el-divider content-position="left">
         建議付款方案
       </el-divider>
-      <div style="height: 20%;">
-        <el-table :data="PaymentsList" >
+        <el-table :data="PaymentsList" height="30%">
           <el-table-column prop="from" label="付款人" />
           <el-table-column prop="to" label="收款人" />
           <el-table-column prop="amount" label="應付金額" />
         </el-table>
-      </div>
       <el-divider content-position="left">
         帳目列表
       </el-divider>
-      <el-scrollbar height="300px" wrap-style="overflow-x: hidden;">
-        <div height="40vh">
+      <el-scrollbar height="55%" wrap-style="overflow-x: hidden;">
           <el-card v-for="(d, index) in TransactionList" :key="index" :class="{ hidden: cardisNew[d.id] }"
             :style="cardStyle[d.id]">
             <template #header>
@@ -62,7 +59,6 @@
               </div>
             </template>
           </el-card>
-        </div>
       </el-scrollbar>
     </el-main>
     <el-footer>
