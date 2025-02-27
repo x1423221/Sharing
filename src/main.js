@@ -1,11 +1,11 @@
-import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap-icons/font/bootstrap-icons.css'
+import "element-plus/dist/index.css";
 import '../public/main.css'
 
-import App from './App.vue'
 import { createApp } from 'vue'
+import App from './App.vue'
 import liff from '@line/liff';
 import router from "./Router/Router";
+import ElementPlus from 'element-plus'
 
 async function LiffInit() {
 
@@ -29,6 +29,7 @@ async function LiffInit() {
 LiffInit().then(() => {
     const app = createApp(App);
     app.use(router);
+    app.use(ElementPlus);
     app.mount('#app');
 }).catch(() => {
     alert("初始化失敗，請重新開啟頁面");

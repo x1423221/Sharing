@@ -1,68 +1,76 @@
 <template>
-  <div class="group-container">
-    <div class="container-title">
+  <PaymentComponents v-model:dialogFormVisible="dialogFormVisible" v-model:dialogpayment="dialogpayment"
+    v-model:DocId="DocId"
+    >
+  </PaymentComponents>
+  <el-container>
+    <el-header>
       <div class="title-container">
         <BtnGotoHomePage></BtnGotoHomePage>
         <div v-if="currentGroup && !isEdit">
           <span>{{ currentGroup.value.name }}</span>
-          <i class="bi bi-pencil" @click="EditGroupName"></i>
+          <el-button type="success" :icon="Edit" size="small" circle @click="EditGroupName" />
         </div>
         <div v-if="currentGroup && isEdit">
-          <input type="text" style="width: 150px" v-model="DocName" />
-          <i class="bi bi-check-circle" @click="SaveGroupName"></i>
-          <i class="bi bi-x-circle" @click="EditGroupName"></i>
+          <el-input type="text" style="width: 100px;" v-model="DocName" />
+          <el-button type="success" :icon="Check" size="small" circle @click="SaveGroupName" />
+          <el-button type="danger" :icon="Close" size="small" circle @click="EditGroupName" />
         </div>
       </div>
-    </div>
-    <div class="container-body">
-      <PaymentComponents ref="XsModal"></PaymentComponents>
-      <div style="overflow-y: hidden; flex:1">
-        <h3>建議付款方案</h3>
-        <div style="height: 70%; overflow-y: auto;">
-          <ul>
-            <li v-for="(payment, index) in PaymentsList" :key="index">
-              {{ payment.from }} 應支付 {{ payment.amount }} 元給 {{ payment.to }}
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div style="overflow-y: hidden; flex: 3;">
-        <h3>帳目列表</h3>
-        <div class="card-container">
-          <div v-for="(d, index) in TransactionList" :key="d.id" class="card" :class="{ hidden: cardisNew[d.id] }"
+    </el-header>
+    <el-main>
+      <el-divider content-position="left">
+        建議付款方案
+      </el-divider>
+      <el-table :data="PaymentsList" height="20%">
+        <el-table-column prop="from" label="付款人" />
+        <el-table-column prop="to" label="收款人" />
+        <el-table-column prop="amount" label="應付金額" />
+      </el-table>
+      <el-divider content-position="left">
+        帳目列表
+      </el-divider>
+      <el-scrollbar height="300px" wrap-style="overflow-x: hidden;">
+        <div height="40vh">
+          <el-card v-for="(d, index) in TransactionList" :key="index" :class="{ hidden: cardisNew[d.id] }"
             :style="cardStyle[d.id]">
-            <div class="card-body">
-              <h5 class="card-title">{{ d.description }}</h5>
-              <div>
-                由{{ d.payer }}先墊付金額:<span>{{ d.amount }}</span>
-                <p>
-                  {{ d.payer }}支付{{d.amount - d.split.filter(s => s.userName !== d.payer).reduce((sum, s) => sum +
-                    Number(s.share), 0)}}
-                </p>
-                <p v-if="d.split.length > 0">
-                  <span v-for="(s, i) in personSplit[index]" :key="s.userId">
-                    <span>{{ s.userName }}</span>應付<span>{{ s.share }}</span>
-                    <span v-if="(i + 1) % 2 === 0"><br /></span>
-                    <span v-else-if="i !== personSplit[index].length - 1">, </span>
-                  </span>
-                </p>
+            <template #header>
+              <div class="card-header">
+                <span>{{ d.description }}</span>
               </div>
-              <div v-if="!d.isLock">
-                <button class="btn btn-primary" data-bs-target="#exampleModal" @click="showModal(d)">
-                  編輯
-                </button>
-              </div>
+            </template>
+            <div v-if="d.split">
+              由{{ d.payer }}先墊付金額:<span>{{ d.amount }}</span>
+              <p>
+                {{ d.payer }}支付{{d.amount - d.split.filter(s => s.userName !== d.payer).reduce((sum, s) => sum +
+                  Number(s.share), 0)}}
+              </p>
+              <p v-if="d.split.length > 0">
+                <span v-for="(s, i) in personSplit[index]" :key="s.userId">
+                  <span>{{ s.userName }}</span>應付<span>{{ s.share }}</span>
+                  <span v-if="(i + 1) % 2 === 0"><br /></span>
+                  <span v-else-if="i !== personSplit[index].length - 1">, </span>
+                </span>
+              </p>
             </div>
-          </div>
+            <template #footer>
+              <div v-if="!d.isLock">
+                <el-button type="primary" @click="showModal(d)">
+                  編輯
+                </el-button>
+              </div>
+            </template>
+          </el-card>
         </div>
-      </div>
-    </div>
-    <div class="btnArea">
-      <button class="btn btn-success" @click="shareMember">分享</button>
-      <button class="btn btn-success" @click="NewTransaction">新增帳目</button>
-    </div>
-  </div>
+      </el-scrollbar>
+    </el-main>
+    <el-footer>
+      <el-button type="success" @click="shareMember">分享</el-button>
+      <el-button type="success" @click="NewTransaction">新增帳目</el-button>
+    </el-footer>
+  </el-container>
 </template>
+
 
 <script setup>
 import liff from "@line/liff";
@@ -70,10 +78,11 @@ import db from "../firebase/config";
 import BtnGotoHomePage from "./BtnGotoHomePage.vue";
 import PaymentComponents from "./PaymentComponents.vue";
 
+import { Edit, Close, Check } from "@element-plus/icons-vue";
 import { inject, onMounted, ref, onUnmounted, reactive, watch, computed } from "vue";
 import { doc, updateDoc, setDoc, onSnapshot, getDoc } from "firebase/firestore";
-import { Transaction, TransactionDetail } from "../Models/SplitModels";
-import { setCardStyle } from "../Models/SplitModels";
+import { Transaction, TransactionDetail, setCardStyle } from "../Models/SplitModels";
+
 
 //取得記錄的資料
 const profile = inject("profile");
@@ -89,8 +98,7 @@ const TransactionList = ref([]);
 const TransactionColData = ref([]);
 //最終計算結果
 const PaymentsList = ref([]);
-//跳窗物件
-const XsModal = ref(null);
+
 //文件ID
 const DocId = ref("");
 //文件名稱
@@ -100,26 +108,7 @@ const DocName = ref("");
 const cardStyle = reactive({});
 const cardisNew = reactive({});
 
-const personSplit = computed(() => {
-  const totalShares = TransactionList.value.map(item =>
-    Object.values(item.split
-      .filter(_item => _item.userName !== item.payer) // 過濾掉 payer
-      .reduce((acc, i) => {
-        if (!acc[i.userId]) {
-          acc[i.userId] = {
-            "userName": i.userName,
-            "userId": i.userId,
-            "share": Number(i.share)
-          }
-        }
-        else {
-          acc[i.userId].share += Number(i.share);
-        }
-        return acc;
-      }, {})));
-  return totalShares
-})
-
+const dialogFormVisible = ref(false);
 
 //註冊階段
 onMounted(async () => {
@@ -378,38 +367,42 @@ const fetchTransactions = async (DocId) => {
         ...value,
       }));
 
+
       TransactionList.value = tmpdata;
       TransactionList.value.forEach((value) => {
         let myselfAmount = 0;
-        value.split.forEach((split) => {
-          const userId = split.userId;
-          const userName = split.userName;
-          const share = parseFloat(split.share) * -1; // 轉換成負值
-          if (userId != value.userId) {
-            myselfAmount += share;
 
-            let issplitExsist = TransactionColData.value.find((record) => {
-              return record.userId === userId;
-            });
+        if (value.split) {
+          value.split.forEach((split) => {
+            const userId = split.userId;
+            const userName = split.userName;
+            const share = parseFloat(split.share) * -1; // 轉換成負值
+            if (userId != value.userId) {
+              myselfAmount += share;
 
-            if (issplitExsist) {
-              issplitExsist.splitAmount += share;
-            } else {
-              TransactionColData.value.push(
-                new TransactionDetail(userId, userName, share));
+              let issplitExsist = TransactionColData.value.find((record) => {
+                return record.userId === userId;
+              });
+
+              if (issplitExsist) {
+                issplitExsist.splitAmount += share;
+              } else {
+                TransactionColData.value.push(
+                  new TransactionDetail(userId, userName, share));
+              }
             }
+          });
+
+          let isExsist = TransactionColData.value.find((record) => {
+            return record.userId == value.userId;
+          });
+
+          if (isExsist) {
+            isExsist.splitAmount += myselfAmount * -1;
+          } else {
+            TransactionColData.value.push(
+              new TransactionDetail(value.userId, value.payer, myselfAmount * -1));
           }
-        });
-
-        let isExsist = TransactionColData.value.find((record) => {
-          return record.userId == value.userId;
-        });
-
-        if (isExsist) {
-          isExsist.splitAmount += myselfAmount * -1;
-        } else {
-          TransactionColData.value.push(
-            new TransactionDetail(value.userId, value.payer, myselfAmount * -1));
         }
       });
 
@@ -418,7 +411,6 @@ const fetchTransactions = async (DocId) => {
       PaymentsList.value.sort((a, b) => b.amount - a.amount);
       TransactionList.value.sort((a, b) => new Date(b.date) - new Date(a.date));
       TransactionColData.value.sort((a, b) => a.splitAmount - b.splitAmount);
-
     } else {
       TransactionList.value = [];
       TransactionColData.value = [];
@@ -432,55 +424,45 @@ const fetchTransactions = async (DocId) => {
   });
 };
 
+
+const personSplit = computed(() => {
+  const totalShares = TransactionList.value.map(item => {
+   return Object.values(item.split
+      .filter(_item => _item.userName !== item.payer) // 過濾掉 payer
+      .reduce((acc, i) => {
+        if (!acc[i.userId]) {
+          acc[i.userId] = {
+            "userName": i.userName,
+            "userId": i.userId,
+            "share": Number(i.share)
+          }
+        }
+        else {
+          acc[i.userId].share += Number(i.share);
+        }
+        return acc;
+      }, {}))});
+  return totalShares
+})
+
+const dialogpayment = ref({});
 const showModal = async (payment) => {
-  const transListdocRef = doc(db, "transactionList", DocId.value);
-  //const TransactionListnap = await getDoc(transListdocRef);
-  isLoading.value = true;
-  await updateDoc(transListdocRef, {
-    [`${payment.id}.isLock`]: true,
-  });
+  try {
+    const transListdocRef = doc(db, "transactionList", DocId.value);
+    isLoading.value = true;
+    await updateDoc(transListdocRef, {
+      [`${payment.id}.isLock`]: true,
+    });
 
-  XsModal.value.showModal(
-    payment,
-    //currentGroup.value.members,
-    DocId.value
-  );
+    dialogpayment.value = payment;
+    dialogFormVisible.value = true
 
-  isLoading.value = false;
+    isLoading.value = false;
+  } catch (err) {
+    alert(err)
+  }
 };
 
 </script>
 
-<style scoped>
-.detail {
-  background-color: #bebebe;
-  padding: 5px;
-  margin: 5px;
-}
-
-.btnArea {
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.t {
-  color: white;
-  width: 40px;
-  height: 40px;
-  background-color: lightslategray;
-  border-radius: 50%;
-  text-align: center;
-  align-content: center;
-}
-
-.row {
-  margin: 5px;
-}
-
-.col {
-  align-items: center;
-  align-content: center;
-}
-</style>
+<style scoped src="../../public/Page.css"></style>

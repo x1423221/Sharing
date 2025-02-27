@@ -1,102 +1,65 @@
 <template>
-  <div class="modal" tabindex="-1" ref="modal">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">帳目維護</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-            @click="hideModal(false)"></button>
-        </div>
-        <div class="modal-body" v-if="Transaction && MemberList">
-          <div class="row">
-            <div class="col-md-4">帳目名稱</div>
-            <div class="col-md">
-              <input v-model="Transaction.description" :disabled="profile.userId !== Transaction.userId" />
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-4">總金額</div>
-            <div class="col-md">
-              <input inputmode="decimal" v-model="Transaction.amount"
-                :disabled="profile.userId !== Transaction.userId" />
-            </div>
-          </div>
-          <h5>分攤明細</h5>
-          <div class="ShareArea" ref="ShareArea">
-            <div v-for="(l, index) in Transaction.split" :key="index" class="row">
-              <div class="col-md-4">
-                <select class="form-select" v-model="l.userId" @change="MemberChange(index)">
-                  <option v-for="(m, index) in MemberList.value" :key="index" :value="m.userId">
-                    {{ m.name }}
-                  </option>
-                </select>
-              </div>
-              <div class="col-md"><input inputmode="decimal" v-model="l.share" /></div>
-            </div>
-          </div>
-          <button class="btn btn-success" @click="newShare">新增分攤明細</button>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="hideModal(false)">
-            關閉
-          </button>
-          <button type="button" class="btn btn-primary" @click="hideModal(true)">
-            儲存
-          </button>
-        </div>
+  <el-dialog v-model="dialogFormVisible" 
+            destroy-on-close :show-close="false"
+            width="80%"
+            :lock-scroll="false"
+            :close-on-click-modal="false">
+    <el-form :model="dialogpayment">
+      <el-divider content-position="left">帳目維護</el-divider>
+      <el-form-item label="帳目名稱" :label-width="formLabelWidth">
+        <el-input v-model="dialogpayment.description" autocomplete="off" />
+      </el-form-item>
+      <el-form-item label="帳目總金額" :label-width="formLabelWidth">
+        <el-input v-model="dialogpayment.amount" inputmode="decimal"></el-input>
+      </el-form-item>
+      <el-divider content-position="left">分攤明細</el-divider>
+      <el-scrollbar ref="ShareArea" height="300px">
+        <el-row :gutter="3" v-for="(item, index) in dialogpayment.split" :key="index">
+          <el-col :span="7">
+            <el-select v-model="dialogpayment.split[index].userId" @change="MemberChange(index)">
+              <el-option v-for="u in MemberList.value" :key="u.userId" :label="u.name" :value="u.userId" />
+            </el-select>
+          </el-col>
+          <el-col :span="17">
+            <el-input v-model="dialogpayment.split[index].share" inputmode="decimal" style="width:100%"></el-input>
+          </el-col>
+        </el-row>
+      </el-scrollbar>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button type="danger" @click="CloseDialog(false)">關閉</el-button>
+        <el-button type="primary" @click="CloseDialog(true)">
+          儲存
+        </el-button>
+        <el-button type="success" @click="Newshare">新增</el-button>
       </div>
-    </div>
-  </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
-import Modal from "bootstrap/js/dist/modal";
 import db from "../firebase/config";
 import { doc, updateDoc } from "firebase/firestore";
+import { ref, inject, nextTick , defineModel} from "vue";
 
-import { onMounted, ref, defineExpose, inject, nextTick } from "vue";
-
-const modal = ref(null);
-const myModal = ref(null);
-
-const Amount = ref(0);
-const groupId = ref(null);
-const profile = inject("profile");
-
-const Transaction = ref([]);
-const MemberList = inject("MemberList");
 
 const ShareArea = ref(null);
+const MemberList = inject("MemberList");
+const profile = inject("profile");
 
-onMounted(() => {
-  myModal.value = new Modal(modal.value);
-});
+const dialogFormVisible = defineModel("dialogFormVisible", { default: false });
+const DocId = defineModel("DocId");
+const dialogpayment = defineModel("dialogpayment");
+const formLabelWidth = "140px"
 
-const showModal = (payment, group) => {
-  Transaction.value = payment;
-  Amount.value = Transaction.value.amount;
-
-  //MemberList.value = members;
-
-  // 🔥 確保 `split` 內部是物件，而不是字串
-  Transaction.value.split = Transaction.value.split.map((item) =>
-    typeof item === "string" ? JSON.parse(item) : item
-  );
-
-  groupId.value = group;
-  myModal.value.show();
-};
-
-const hideModal = async (NeedUpdate) => {
-  const transListdocRef = doc(db, "transactionList", groupId.value);
-
-
-
+const CloseDialog = async (NeedUpdate) => {
+  const transListdocRef = doc(db, "transactionList", DocId.value);
   if (NeedUpdate) {
-    const isOverflow = Transaction.value.split
-      .filter(s => s.userName !== Transaction.value.payer)
+    const isOverflow = dialogpayment.value.split
+      .filter(s => s.userName !== dialogpayment.value.payer)
       .reduce((sum, s) => Number(sum) + Number(s.share), 0)
-      > Transaction.value.amount
+      > dialogpayment.value.amount
 
     if (isOverflow) {
       alert("明細總金額 超過 帳目總金額")
@@ -104,21 +67,21 @@ const hideModal = async (NeedUpdate) => {
     }
 
     await updateDoc(transListdocRef, {
-      [`${Transaction.value.id}.description`]: Transaction.value.description,
-      [`${Transaction.value.id}.amount`]: Number(Transaction.value.amount),
-      [`${Transaction.value.id}.split`]: Transaction.value.split,
+      [`${dialogpayment.value.id}.description`]: dialogpayment.value.description,
+      [`${dialogpayment.value.id}.amount`]: Number(dialogpayment.value.amount),
+      [`${dialogpayment.value.id}.split`]: dialogpayment.value.split,
     });
   }
 
   await updateDoc(transListdocRef, {
-    [`${Transaction.value.id}.isLock`]: false,
+    [`${dialogpayment.value.id}.isLock`]: false,
   });
 
-  myModal.value.hide();
-};
+  dialogFormVisible.value = false;
+}
 
-const newShare = () => {
-  Transaction.value.split.push({
+const Newshare = () => {
+  dialogpayment.value.split.push({
     share: Number(0),
     userId: profile.value.userId,
     userName: profile.value.displayName,
@@ -126,54 +89,17 @@ const newShare = () => {
 
   nextTick(() => {
     if (ShareArea.value)
-      ShareArea.value.scrollTop = ShareArea.value.scrollHeight
+      ShareArea.value.wrapRef.scrollTop = ShareArea.value.wrapRef.scrollHeight
   })
 };
 
 const MemberChange = (index) => {
   const selectedUser = MemberList.value.find(
-    (m) => m.userId === Transaction.value.split[index].userId
+    (m) => m.userId === dialogpayment.value.split[index].userId
   );
 
-  Transaction.value.split[index].userName = selectedUser.name;
+  dialogpayment.value.split[index].userName = selectedUser.name;
 };
-
-defineExpose({
-  showModal,
-  hideModal,
-});
 </script>
 
-<style scoped>
-input {
-  width: 100%;
-  margin: 5px 0 5px 0;
-}
-
-.row {
-  margin: 10px;
-}
-
-.col-md-4 {
-  text-align: right;
-  letter-spacing: 10px;
-  align-content: center;
-}
-
-.select {
-  height: 100%;
-}
-
-.ShareArea {
-  overflow-x: hidden;
-  overflow-y: auto;
-  max-height: 30vh;
-  scrollbar-gutter: stable;
-}
-
-@media screen and (max-width : 600px) {
-  .col-md-4 {
-    text-align: left;
-  }
-}
-</style>
+<style scoped src="../../public/Page.css"></style>

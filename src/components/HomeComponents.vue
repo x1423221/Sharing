@@ -1,17 +1,20 @@
 <template>
-  <div class="home-container">
-    <h1>分帳輕鬆搞定</h1>
-    <p>快速紀錄與分帳，讓金錢計算更簡單。</p>
-    <div>
-      <button id="btnCreateNew" class="btn btn-success" @click="gotoGroupPage">
+  <el-container>
+    <el-header>
+      <h1>分帳輕鬆搞定</h1>
+      <p>快速紀錄與分帳，讓金錢計算更簡單。</p>
+    </el-header>
+    <el-main >
+      <el-button id="btnCreateNew" @click="gotoGroupPage">
         建立新分帳
-      </button>
-      <button id="btnShowHis" class="btn btn-success" @click="gotoHistoryPage">
+      </el-button>
+      <el-button id="btnShowHis" @click="gotoHistoryPage">
         檢視歷史紀錄
-      </button>
-    </div>
-  </div>
+      </el-button>
+    </el-main>
+  </el-container>
 </template>
+
 
 <script setup>
 import { ref, onMounted, inject } from "vue";
@@ -198,6 +201,11 @@ const gotoHistoryPage = async () => {
 </script>
 
 <style scoped>
+.el-container *{
+  height: auto;
+  text-align: center;
+}
+
 h1,
 span,
 a,
@@ -207,14 +215,8 @@ p {
 }
 
 button {
+  width: 100px;
   margin: 10px;
-}
-
-.home-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
 }
 
 #btnShowHis {

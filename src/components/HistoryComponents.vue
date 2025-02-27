@@ -1,30 +1,30 @@
 <template>
-  <div class="group-container">
-    <div class="container-title">
+  <el-container>
+    <el-header>
       <div class="title-container">
         <BtnGotoHomePage></BtnGotoHomePage>
         <div>
           <span>歷史紀錄</span>
         </div>
       </div>
-    </div>
-    <div class="container-body">
-      <div class="card-container">
-        <div v-for="(item, index) in historyDocs" :key="item.id" :class="{ hidden: cardisNew[item.id] }"
-          :style="cardStyle[item.id]" class="card">
-          <div class="card-body">
-            <h5 class="card-title">{{ item.name }}</h5>
-            <span>{{ item.date }}</span>
-            <div>
-              <button id="btnGotoGroupPage" class="btn btn-success" @click="gotoGroup(index)" style="width: 100%;">
-                前往{{ item.name }}
-              </button>
+    </el-header>
+    <el-main>
+      <el-scrollbar height="100%" wrap-style="overflow-x: hidden;">
+        <el-card v-for="(item, index) in historyDocs" :key="index" :class="{ hidden: cardisNew[item.id] }"
+          :style="cardStyle[item.id]">
+          <template #header>
+            <div class="card-header">
+              <span>{{ item.name }}</span>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+          </template>
+          <p>{{ item.date }}</p>
+          <el-button type="success" @click="gotoGroup(index)">
+            前往{{ item.name }}
+          </el-button>
+        </el-card>
+      </el-scrollbar>
+    </el-main>
+  </el-container>
 </template>
 
 <script setup>
@@ -53,7 +53,6 @@ onMounted(async () => {
     const firebase = getFirestore();
     const SplitCols = collection(firebase, "241229Test");
     const SplitDocs = await getDocs(SplitCols);
-
     //過濾出文件Id是自己或者members中有自己的資料
     SplitDocs.forEach((doc) => {
       const docData = doc.data();
@@ -72,22 +71,21 @@ onMounted(async () => {
       }
 
       //上面都沒進去的話，過濾members欄位中有自己的
-      const filteredGroups = Object.entries(docData).filter(([key , value]) =>{
+      const filteredGroups = Object.entries(docData).filter(([key, value]) => {
         console.log(key)
         // 篩選 `members` 陣列是否包含 `userId.value`
-        return  value.members.filter(item => item.userId === profile.value.userId).length > 0 
-      }).map(([key , value]) => ({
+        return value.members.filter(item => item.userId === profile.value.userId).length > 0
+      }).map(([key, value]) => ({
         did: doc.id,
         id: key, // 確保 `id` 是單獨的欄位
         ...value,
       }));
 
       historyDocs.value = [...historyDocs.value, ...filteredGroups];
-      historyDocs.value.sort((a, b) =>   new Date(b.date) - new Date(a.date))
     });
 
+    historyDocs.value.sort((a, b) => new Date(b.date) - new Date(a.date))
     setCardStyle(historyDocs.value, cardStyle, cardisNew);
-
     isLoading.value = false;
   } catch (err) {
     alert(err);
@@ -100,4 +98,4 @@ const gotoGroup = (index) => {
 };
 </script>
 
-<style scoped></style>
+<style scoped src="../../public/Page.css"></style>
