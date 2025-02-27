@@ -1,7 +1,6 @@
 <template>
   <PaymentComponents v-model:dialogFormVisible="dialogFormVisible" v-model:dialogpayment="dialogpayment"
-    v-model:DocId="DocId"
-    >
+    v-model:DocId="DocId">
   </PaymentComponents>
   <el-container>
     <el-header>
@@ -22,11 +21,13 @@
       <el-divider content-position="left">
         建議付款方案
       </el-divider>
-      <el-table :data="PaymentsList" height="300">
-        <el-table-column prop="from" label="付款人" />
-        <el-table-column prop="to" label="收款人" />
-        <el-table-column prop="amount" label="應付金額" />
-      </el-table>
+      <div style="height: 20%;">
+        <el-table :data="PaymentsList" >
+          <el-table-column prop="from" label="付款人" />
+          <el-table-column prop="to" label="收款人" />
+          <el-table-column prop="amount" label="應付金額" />
+        </el-table>
+      </div>
       <el-divider content-position="left">
         帳目列表
       </el-divider>
@@ -427,7 +428,7 @@ const fetchTransactions = async (DocId) => {
 
 const personSplit = computed(() => {
   const totalShares = TransactionList.value.map(item => {
-   return Object.values(item.split
+    return Object.values(item.split
       .filter(_item => _item.userName !== item.payer) // 過濾掉 payer
       .reduce((acc, i) => {
         if (!acc[i.userId]) {
@@ -441,7 +442,8 @@ const personSplit = computed(() => {
           acc[i.userId].share += Number(i.share);
         }
         return acc;
-      }, {}))});
+      }, {}))
+  });
   return totalShares
 })
 
